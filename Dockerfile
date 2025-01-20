@@ -20,7 +20,7 @@ RUN apt-get install -y ttf-wqy-microhei
 RUN apt-get install -y libnss3 libx11-xcb1 libasound2 libatk-bridge2.0-0 libgtk-3-0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libxkbcommon0 libxslt1.1 libgtk-3-0 libdbus-glib-1-2
 
 # 安装Python依赖
-RUN pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+RUN pip install --no-cache-dir -r requirements.txt
 
 # 安装playwright及浏览器
 RUN playwright install chromium
