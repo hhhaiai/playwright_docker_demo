@@ -1,6 +1,12 @@
 from playwright.sync_api import sync_playwright
+import json
+import time
 
-def scrape_duckduckgo_ai():
+
+def scrape_duckai_models():
+    """
+        从网页获取获取模型
+    """
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         context = browser.new_context()
@@ -30,10 +36,11 @@ def scrape_duckduckgo_ai():
         
         return models_info
 
+
 def extract_models_info(page):
-    models_info = {}
     models = page.query_selector_all('ul[role="radiogroup"] > li')
-    
+
+    result = []
     for model in models:
         # 使用更精确的选择器
         name_element = model.query_selector('.J58ouJfofMIxA2Ukt6lA')
@@ -43,16 +50,27 @@ def extract_models_info(page):
         if name_element:
             name = name_element.inner_text()
             description = description_element.inner_text() if description_element else ""
-            models_info[name] = {
-                "value": value,
-                "description": description
-            }
-    return models_info
+            
+            # 提取 owned_by
+            if any(keyword in value for keyword in ["GPT-4", "o1", "GPT-3.5"]):
+                owned_by = "OpenAI"
+            else:
+                owned_by = value.split()[0].split('-')[0].split('/')[0]
+            
+            result.append({
+                "id": value,
+                "object": "model",
+                "created": int(time.time() * 1000),  # 当前时间的毫秒值
+                "owned_by": owned_by,
+                "description": name
+            })
+    
+    # 将结果转换为 JSON 字符串
+    return json.dumps({"object": "list", "data": result}, ensure_ascii=False)
+
+
 
 # 测试代码
 if __name__ == "__main__":
-    result = scrape_duckduckgo_ai()
-    for model_name, info in result.items():
-        print(f"\n模型: {model_name}")
-        print(f"值: {info['value']}")
-        print(f"描述: {info['description']}")
+    result_json = scrape_duckai_models()
+    print(result_json)
